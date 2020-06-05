@@ -1,0 +1,35 @@
+
+    <%- include('./partials/header.ejs') %>
+
+    <div class="jumbotron" style="padding: 10px;">
+        <h1 class="display-4">Labels</h1>
+        <p class="lead">Manage your Labels here</p>
+        <hr class="my-4">
+        <form class="form-inline row" action="\labels" method="POST">
+            <label class="sr-only" for="label">LABEL</label>
+            <div class="col-10">
+                <input type="text" name="label" class="form-control form-control-lg mb-2 mr-sm-2" style="width: 100%;" placeholder="Add New Label">          
+            </div>
+            <div class="col-2">
+                <button type="submit" class="btn btn-primary btn-lg mb-2">Add</button>
+            </div>
+          </form>
+      </div>
+
+      <div class="row" style="padding: 10px;">
+        <% labels.forEach( (obj) => { %>
+            <div class="card col-sm-4">
+                <!-- <img src="..." class="card-img-top" alt="..."> -->
+                <div class="card-body">
+                  <h5 class="card-title"><%= obj.name %></h5>
+                  <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                  <a href="#" class="btn btn-primary">Go somewhere</a>
+                </div>
+              </div>
+        <% }) %>  
+      </div>
+     
+
+     
+
+    <%- include('./partials/footer.ejs') %>
