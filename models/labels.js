@@ -5,7 +5,14 @@ const labelSchema = new mongoose.Schema({
         type: String,
         required : true
     },
-    todos: []
+    createdAt: {
+        type: Date,
+        default: Date.now()        
+    },
+    author: {
+        type: String,
+        required: true
+    }
 });
 
 const Label = mongoose.model('labels', labelSchema);

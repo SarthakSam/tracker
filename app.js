@@ -3,7 +3,8 @@ let express = require('express'),
     app     = express(),
     bodyParser = require('body-parser'),
     mongoose = require('mongoose'),
-    Label = require('./models/labels.js');
+    Label = require('./models/labels.js'),
+    Todo = require('./models/Todos.js');
 
 mongoose.connect('mongodb://localhost/tracker_db', {
   useNewUrlParser: true,
@@ -16,23 +17,6 @@ app.use(bodyParser.json())
 app.use(express.static("public"));
 app.use(methodOverride('_method'))
 
-const todosSchema = new mongoose.Schema({
-    author: {
-        type: String,
-        required: true
-            },
-    task: {
-        type: String,
-        required: true
-            },
-    date: {
-        type: Date,
-        default: Date.now()        
-    }
-});
-
-const Todo = mongoose.model('todos', todosSchema);
-
 app.get('/',(req, res) => {
     res.render('home');
 });
@@ -44,8 +28,12 @@ app.get('/todos', (req, res) => {
             console.log(err);    
         }
         else{
-            console.log(todos);
-            res.render("todos", {todos} );
+            // console.log(todos);
+            Label.find({}, (err, labels) => {
+                if(err)
+                    console.log(err);
+                res.render("todos", { todos, labels } );
+            })
         }
     });
     // res.render('todos', {});
@@ -53,10 +41,11 @@ app.get('/todos', (req, res) => {
 
 app.post('/todos', isAuthenticated, (req, res) => {
     console.log(req.body);
-    if(!req.body || !req.body.task){
+    if(!req.body || !req.body.description){
         res.redirect("/todos");
     }
     else{
+        req.body.priority = +req.body.priority;
         Todo.create(req.body, (err, task) => {
             if(err)
                 console.log(err);
@@ -67,21 +56,50 @@ app.post('/todos', isAuthenticated, (req, res) => {
     }
 });
 
-app.put('/todos/:id', isAuthenticated, (req, res) => {
-    console.log(req.body);
+app.get('/todos/:id/edit', (req, res) => {
+    Todo.findById({ _id: req.params.id}, (err, todo) => {
+        if(err){
+            res.redirect("/todos");
+            console.log(err);    
+        }
+        else{
+            console.log(todo);
+            Label.find({}, (err, labels) => {
+                if(err)
+                    console.log(err);
+                res.render("todosEdit", { todo, labels } );
+            })
+        }
+    });
+    // res.render('todos', {});
+});
 
-    // if(!req.body || !req.body.task){
-        res.redirect("/todos");
-    // }
-    // else{
-    //     Todo.update(req.body, (err, task) => {
-    //         if(err)
-    //             console.log(err);
-    //         else
-    //             console.log(task)
-    //             res.redirect('/todos')
-    //     })        
-    // }
+app.put('/todos/:id', (req, res) => {
+    console.log(req.body);
+    if(!req.body || !req.body.description){
+        res.redirect('/todos');
+        return;
+    }
+    let newTodo = req.body;
+    Todo.findByIdAndUpdate({ _id : req.params.id}, newTodo, (err, todo) => {
+        if(err)
+            console.log(err);
+        else
+            console.log(todo)    
+        res.redirect('/todos');
+    })
+});
+
+app.delete('/todos/:id', isAuthenticated, (req, res) => {
+    if(!req.params.id){
+        res.redirect('/todos');
+        return;
+    }
+    Todo.findByIdAndDelete({ _id : req.params.id}, (err) => {
+        if(err)
+            console.log(err);
+        res.redirect('/todos');
+    })
 });
 
 app.get('/labels', (req, res) => {
@@ -96,15 +114,12 @@ app.get('/labels', (req, res) => {
 
 app.post('/labels', isAuthenticated, (req, res) => {
     console.log(req.body);
-    if(!req.body || !req.body.label){
+    if(!req.body || !req.body.name){
         res.redirect("/labels");
         return;
     }
     
-    let obj = {
-        name : req.body.label
-    }
-    Label.create(obj, (err, label) => {
+    Label.create(req.body, (err, label) => {
         if(err)
             console.log(err);
         else
@@ -112,6 +127,10 @@ app.post('/labels', isAuthenticated, (req, res) => {
         res.redirect('/labels');
     });
 });
+
+app.get('/labels/:id', (req, res) => {
+    res.render("todos.ejs", {"todos": []})
+})
 
 function isAuthenticated(req, res, next){
     console.log("authenticated")

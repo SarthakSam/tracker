@@ -9,3 +9,10 @@
 .content{
     min-height: calc(100vh - 86px);
 }
+
+.editTodo{
+    padding-top: 3em;
+    margin: 0 auto;
+    background: #AEA;
+    box-shadow: 10px 12px 0.5rem rgba(0,0,0,0.5);
+}

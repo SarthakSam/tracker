@@ -1,0 +1,39 @@
+<%- include('./partials/header.ejs') %>
+
+
+<div class="row col-8 editTodo">
+    <h1> Edit Todo</h1>
+    <form action= "/todos/<%= todo._id %>?_method=PUT" method="POST" style="width: 100%; padding-top: 4em;"> 
+        <div class="form-group">
+          <label for="task">Description</label>
+          <input type="text" class="form-control" name= "description" value="<%= todo.description %>">
+        </div>
+        <div class="form-group">
+          <label for="task">Priority</label>
+          <% for(let i = 1; i <= 5;i++){  %>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" id = "<%= i %>" name="priority" value="<%= i %>"  <%= todo.priority == i? "checked": "" %>>
+              <label class="form-check-label" for="<%= i %>"><%= i %></label>
+            </div>
+          <% }   %>
+        </div>
+      
+        <div class="form-group">
+          <label for="label">Change Label</label>
+          <select class="form-control" name="label">
+            <!-- <option value="">Select</option> -->
+            <% if(labels){ %>
+            <% labels.forEach(label => { %>
+                <option value="<%= label._id %>" selected = "<%= todo.label %>"><%= label.name %></option>
+            <% }) %>
+            <% } %>
+          </select>
+        </div>
+      
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    
+</div>
+  
+
+<%- include('./partials/footer.ejs') %>
