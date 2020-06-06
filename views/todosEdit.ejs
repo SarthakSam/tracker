@@ -24,7 +24,9 @@
             <!-- <option value="">Select</option> -->
             <% if(labels){ %>
             <% labels.forEach(label => { %>
-                <option value="<%= label._id %>" selected = "<%= todo.label %>"><%= label.name %></option>
+                <option value="<%= label._id %>" <%= todo.label.toString() == label._id.toString()? "selected": "" %> >
+                  <%= label.name %>
+                </option>
             <% }) %>
             <% } %>
           </select>
@@ -34,6 +36,5 @@
     </form>
     
 </div>
-  
 
 <%- include('./partials/footer.ejs') %>

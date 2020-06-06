@@ -17,6 +17,8 @@ app.use(bodyParser.json())
 app.use(express.static("public"));
 app.use(methodOverride('_method'))
 
+// Label.create({name: "Select", author: "sarthak"})
+
 app.get('/',(req, res) => {
     res.render('home');
 });
@@ -103,11 +105,11 @@ app.delete('/todos/:id', isAuthenticated, (req, res) => {
 });
 
 app.get('/labels', (req, res) => {
-    Label.find({}, (err, labels) =>{
+    Label.find({ "name": { $ne: "Select" }}, (err, labels) =>{
         if(err)
             console.log(err);
         else
-            console.log(labels)
+            // console.log(labels)
         res.render("labels", { labels });
     });
 })
@@ -128,9 +130,24 @@ app.post('/labels', isAuthenticated, (req, res) => {
     });
 });
 
-app.get('/labels/:id', (req, res) => {
-    res.render("todos.ejs", {"todos": []})
-})
+// app.get('/labels/:id', (req, res) => {
+//     Todo.find({ labels: req.params.id}, (err, todos) => {
+//         if(err){
+//             // res.render("todos", {todos} );
+//             console.log(err);    
+//             res.redirect('/labels');
+//         }
+//         else{
+//             // console.log(todos);
+//             Label.find({}, (err, labels) => {
+//                 if(err)
+//                     console.log(err);
+//                 res.render("todos", { todos, labels } );
+//             })
+//         }
+//     });
+//     res.render("todos.ejs", {"todos": []})
+// })
 
 function isAuthenticated(req, res, next){
     console.log("authenticated")
