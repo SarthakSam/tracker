@@ -16,3 +16,29 @@
     background: #AEA;
     box-shadow: 10px 12px 0.5rem rgba(0,0,0,0.5);
 }
+
+/* .list-group-item-veryUrgent{
+    background-color: rgba(181,12,72,0.8);
+} */
+
+.list-group-item-warning{
+    background-color: #f8db84;
+}
+
+/* .todoComplete{
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+} */
+
+.todos{
+    overflow-y: hidden;
+    display: flex;
+    margin: 3px;
+    height: 43px;
+}
+
+.active{
+    height: auto;
+
+}

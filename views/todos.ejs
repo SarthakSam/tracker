@@ -2,24 +2,36 @@
     <%- include('./partials/header.ejs') %>
 
     <div class="jumbotron" style="padding: 10px;">
-        <h1 class="display-4">Todos List</h1>
+        <h1 class="display-4">Todos List
+          <% if(isLabelSelected){ %>
+            for <%= labels[0].name %> 
+          <% } %>
+        </h1>
         <hr class="my-4">
-        <p class="lead">Manage your Todos here</p>
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#todosPopup">
-          <i class="fa fa-plus" aria-hidden="true"></i>New Todo
+        <p class="lead" style="display: inline;">Manage your Todos here </p>
+        <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#todosPopup">
+          <i class="fa fa-plus mr-2" aria-hidden="true"></i>New Todo
           </button>       
       </div>
 
       <ul class="list-group">
         <% todos.forEach(obj => { %>
-            <li class="list-group-item"><%- obj.description %>  <i class="fa fa-tags" aria-hidden="true"></i> 
-              <a href="/todos/<%= obj._id %>/edit"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
-              
-              <form action="/todos/<%= obj._id %>?_method=DELETE" method="post">
-                <button class="deleteButton" style="background: none; padding: 0; border: none;" type="submit">
-                  <i class="fa fa-trash" aria-hidden="true"></i>
-                </button>
-              </form>
+            <li onclick="todoClicked(event) " class = "todos list-group-item list-group-item-action row <%= obj.priority == 5? 'list-group-item-danger' : obj.priority == 4?
+            'list-group-item-warning' : obj.priority == 3? 'list-group-item-info' : obj.priority == 2? 'list-group-item-success': 'list-group-item-light'  %>" >
+                <div class="col-lg-11"><%- obj.description %> </div>
+                <div class="col-lg-1" style="padding-right: 0;">
+                  <a href="/todos/<%= obj._id %>/edit"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
+                  <form action="" method="post" style="display: inline;">
+                    <button class="deleteButton" style="background: none; padding: 0; border: none;" type="submit">
+                      <i class="fa fa-arrow-right" aria-hidden="true"></i>
+                    </button>
+                  </form>
+                  <form action="/todos/<%= obj._id %>?_method=DELETE" method="post" style="display: inline;">
+                    <button class="deleteButton" style="background: none; padding: 0; border: none;" type="submit">
+                     <i class="fa fa-trash" aria-hidden="true"></i>
+                    </button>
+                  </form>
+                </div>
             </li>
         <% }) %>
       </ul>
@@ -48,7 +60,7 @@
                 <label for="task">Priority</label>
                 <% for(let i = 1; i <= 5;i++){  %>
                   <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id = "<%= i %>" name="priority" value="<%= i %>">
+                    <input class="form-check-input" type="radio" id = "<%= i %>" name="priority" value="<%= i %>" <%= i == 1 ? "checked" : "" %>>
                     <label class="form-check-label" for="<%= i %>"><%= i %></label>
                   </div>
                 <% }   %>
@@ -57,12 +69,9 @@
               <div class="form-group">
                 <label for="label">Change Label</label>
                 <select class="form-control" name="label">
-                  <!-- <option value="">Select</option> -->
-                  <% if(labels){ %>
                   <% labels.forEach(label => { %>
-                      <option value="<%= label._id %>"><%= label.name %></option>
+                      <option value="<%= label._id %>" <%= isLabelSelected? "selected" : "" %> ><%= label.name %></option>
                   <% }) %>
-                  <% } %>
                 </select>
               </div>
           </form>

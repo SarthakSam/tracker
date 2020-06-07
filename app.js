@@ -34,7 +34,7 @@ app.get('/todos', (req, res) => {
             Label.find({}, (err, labels) => {
                 if(err)
                     console.log(err);
-                res.render("todos", { todos, labels } );
+                res.render("todos", { todos, labels, isLabelSelected: false } );
             })
         }
     });
@@ -42,12 +42,13 @@ app.get('/todos', (req, res) => {
 });
 
 app.post('/todos', isAuthenticated, (req, res) => {
-    console.log(req.body);
     if(!req.body || !req.body.description){
         res.redirect("/todos");
     }
     else{
         req.body.priority = +req.body.priority;
+        if(!req.body.priority)
+            res.redirect('/todos')
         Todo.create(req.body, (err, task) => {
             if(err)
                 console.log(err);
@@ -65,7 +66,7 @@ app.get('/todos/:id/edit', (req, res) => {
             console.log(err);    
         }
         else{
-            console.log(todo);
+            // console.log(todo);
             Label.find({}, (err, labels) => {
                 if(err)
                     console.log(err);
@@ -130,24 +131,35 @@ app.post('/labels', isAuthenticated, (req, res) => {
     });
 });
 
-// app.get('/labels/:id', (req, res) => {
-//     Todo.find({ labels: req.params.id}, (err, todos) => {
-//         if(err){
-//             // res.render("todos", {todos} );
-//             console.log(err);    
-//             res.redirect('/labels');
-//         }
-//         else{
-//             // console.log(todos);
-//             Label.find({}, (err, labels) => {
-//                 if(err)
-//                     console.log(err);
-//                 res.render("todos", { todos, labels } );
-//             })
-//         }
-//     });
-//     res.render("todos.ejs", {"todos": []})
+app.get('/labels/:id', (req, res) => {
+    Todo.find({ label: req.params.id}, (err, todos) => {
+        if(err){
+            // res.render("todos", {todos} );
+            console.log(err);    
+            res.redirect('/labels');
+        }
+        else{
+            console.log(todos);
+            Label.find({_id: req.params.id}, (err, labels) => {
+                if(err)
+                    console.log(err);
+                   console.log(labels) 
+                res.render("todos", { todos, labels, isLabelSelected: true} );
+            })
+        }
+    });
+    // res.render("todos.ejs", {"todos": []})
+})
+
+// app.get('/inProgress', (req, res) => {
+//     // curTask.find({}, (err, todos) => {
+//     //     if(err)
+//     //         console.log(err);
+//     //     res.render("inProgress", { todos })            
+//     // })
 // })
+
+app.post
 
 function isAuthenticated(req, res, next){
     console.log("authenticated")
