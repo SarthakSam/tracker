@@ -3,8 +3,13 @@ let express = require('express'),
     app     = express(),
     bodyParser = require('body-parser'),
     mongoose = require('mongoose'),
+    passport = require('passport'),
+    localStratrergy = require('passport-local'),
+    passportLocalMongoose = require('passport-local-mongoose'),
+    expressSession = require('express-session'),
     Label = require('./models/labels.js'),
     Todo = require('./models/Todos.js');
+    User = require('./models/user');
 
 mongoose.connect('mongodb://localhost/tracker_db', {
   useNewUrlParser: true,
@@ -16,14 +21,65 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 app.use(express.static("public"));
 app.use(methodOverride('_method'))
+app.use(expressSession({
+    secret: "To manage my todos I made this",
+    resave: false,
+    saveUninitialized: false
+}))
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+passport.use(new localStratrergy(User.authenticate()));
 
 // Label.create({name: "Select", author: "sarthak"})
 
 app.get('/',(req, res) => {
-    res.render('home');
+    res.render('home', { currentUser: req.user});
 });
 
-app.get('/todos', (req, res) => {
+app.get('/home',(req, res) => {
+    res.render('home', { currentUser: req.user});
+});
+
+
+app.get('/signup', (req, res) => {
+    res.render("signup", { currentUser: req.user });
+})
+
+app.post('/signup', (req, res) => {
+    console.log(req.body)
+    if(!req.body.username || !req.body.password )
+        return res.redirect('/signup');
+    User.register( new User({ username: req.body.username, email: req.body.email}), req.body.password, (err, user) => {
+        if(err){
+            console.log(err)
+            return res.redirect('/signup');
+        }
+        passport.authenticate("local")(req, res, function(){
+            res.redirect("/todos");
+        })
+    } )
+});
+
+app.get('/signin', (req, res) => {
+    res.render("signin", { currentUser: req.user });
+})
+
+app.post('/signin', passport.authenticate("local",{
+    successRedirect: '/todos',
+    failureRedirect: '/signin'
+}) ,(req, res) => {
+    // res.render("signin");
+})
+
+app.get('/signout', (req, res) => {
+    req.logOut();
+    res.redirect('/');
+})
+
+app.get('/todos', isAuthenticated, (req, res) => {
     Todo.find({}, (err, todos) => {
         if(err){
             res.render("todos", {todos} );
@@ -34,7 +90,7 @@ app.get('/todos', (req, res) => {
             Label.find({}, (err, labels) => {
                 if(err)
                     console.log(err);
-                res.render("todos", { todos, labels, isLabelSelected: false } );
+                res.render("todos", { todos, labels, isLabelSelected: false, currentUser: req.user } );
             })
         }
     });
@@ -59,7 +115,7 @@ app.post('/todos', isAuthenticated, (req, res) => {
     }
 });
 
-app.get('/todos/:id/edit', (req, res) => {
+app.get('/todos/:id/edit', isAuthenticated, (req, res) => {
     Todo.findById({ _id: req.params.id}, (err, todo) => {
         if(err){
             res.redirect("/todos");
@@ -70,14 +126,14 @@ app.get('/todos/:id/edit', (req, res) => {
             Label.find({}, (err, labels) => {
                 if(err)
                     console.log(err);
-                res.render("todosEdit", { todo, labels } );
+                res.render("todosEdit", { todo, labels, currentUser: req.user } );
             })
         }
     });
     // res.render('todos', {});
 });
 
-app.put('/todos/:id', (req, res) => {
+app.put('/todos/:id', isAuthenticated, (req, res) => {
     console.log(req.body);
     if(!req.body || !req.body.description){
         res.redirect('/todos');
@@ -105,13 +161,13 @@ app.delete('/todos/:id', isAuthenticated, (req, res) => {
     })
 });
 
-app.get('/labels', (req, res) => {
+app.get('/labels', isAuthenticated,(req, res) => {
     Label.find({ "name": { $ne: "Select" }}, (err, labels) =>{
         if(err)
             console.log(err);
         else
             // console.log(labels)
-        res.render("labels", { labels });
+        res.render("labels", { labels, currentUser: req.user });
     });
 })
 
@@ -131,7 +187,7 @@ app.post('/labels', isAuthenticated, (req, res) => {
     });
 });
 
-app.get('/labels/:id', (req, res) => {
+app.get('/labels/:id', isAuthenticated, (req, res) => {
     Todo.find({ label: req.params.id}, (err, todos) => {
         if(err){
             // res.render("todos", {todos} );
@@ -144,7 +200,7 @@ app.get('/labels/:id', (req, res) => {
                 if(err)
                     console.log(err);
                    console.log(labels) 
-                res.render("todos", { todos, labels, isLabelSelected: true} );
+                res.render("todos", { todos, labels, isLabelSelected: true, currentUser: req.user} );
             })
         }
     });
@@ -159,12 +215,12 @@ app.get('/labels/:id', (req, res) => {
 //     // })
 // })
 
-app.post
-
 function isAuthenticated(req, res, next){
-    console.log("authenticated")
-    req.body.author = "sarthak";
-    next();
+    console.log(req.user);
+    if(req.isAuthenticated())
+        next();
+    else
+    res.redirect('/signin');
 }
 
 app.listen(3000, () => {
