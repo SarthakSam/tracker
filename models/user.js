@@ -12,14 +12,10 @@ let userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-    },
-    todosInProgress: [{
-        type: mongoose.Schema.Types.ObjectId,
-        model: "Todo"
-    }]
+    }
 });
 
 userSchema.plugin(passportLocalMongoose);
 
-let User = mongoose.model("user", userSchema);
+let User = mongoose.model("User", userSchema);
 module.exports = User;

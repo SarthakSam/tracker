@@ -2,25 +2,25 @@
     <%- include('./partials/header.ejs') %>
 
     <div class="jumbotron" style="padding: 10px;">
-        <h1 class="display-4">Todos List
+        <h1 class="display-4">Todos In Progress
         </h1>
         <hr class="my-4">
-        <p class="lead" style="display: inline;">Manage your Todos here </p>
-        <!-- <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#todosPopup">
-          <i class="fa fa-plus mr-2" aria-hidden="true"></i>New Todo
-          </button>        -->
+        <p class="lead" style="display: inline;">Manage your inProgress Todos </p>
       </div>
 
       <ul class="list-group">
         <% todos.forEach(obj => { %>
+            <%= obj %>
             <li onclick="todoClicked(event) " class = "todos list-group-item list-group-item-action row <%= obj.priority == 5? 'list-group-item-danger' : obj.priority == 4?
             'list-group-item-warning' : obj.priority == 3? 'list-group-item-info' : obj.priority == 2? 'list-group-item-success': 'list-group-item-light'  %>" >
                 <div class="col-lg-11"><%- obj.description %> </div>
                 <div class="col-lg-1" style="padding-right: 0;">
                   <a href="/todos/<%= obj._id %>/edit"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
-                  <form action="" method="post" style="display: inline;">
+                  <form action="/inProgress" method="post" style="display: inline;">
+                    <input type="text" name="todoId" value="<%= obj._id %>" style="display: none;">
+                    <input type="text" name="status" value="0" style="display: none;">
                     <button class="deleteButton" style="background: none; padding: 0; border: none;" type="submit">
-                      <i class="fa fa-arrow-right" aria-hidden="true"></i>
+                      <i class="fa fa-arrow-left" aria-hidden="true"></i>
                     </button>
                   </form>
                   <form action="/todos/<%= obj._id %>?_method=DELETE" method="post" style="display: inline;">

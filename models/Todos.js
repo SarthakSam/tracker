@@ -1,14 +1,13 @@
 const mongoose = require('mongoose');
 
 const todosSchema = new mongoose.Schema({
-    author: {
-            type: String,
-            required: true
-            },
+    title: {
+        type: String,
+        required: true
+    },        
     description: {
-            type: String,
-            required: true
-            },
+            type: String
+    },
     createdAt: {
         type: Date,
         default: Date.now()        
@@ -23,9 +22,17 @@ const todosSchema = new mongoose.Schema({
     label: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Label"
+    },
+    status: {
+        type: Number,
+        default: 0
+    },
+    author: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
     }
 });
 
-const Todo = mongoose.model('todos', todosSchema);
+const Todo = mongoose.model('Todo', todosSchema);
 
 module.exports = Todo;

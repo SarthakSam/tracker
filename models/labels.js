@@ -10,12 +10,13 @@ const labelSchema = new mongoose.Schema({
         default: Date.now()        
     },
     author: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        model: "User",
         required: true
     }
 });
 
-const Label = mongoose.model('labels', labelSchema);
+const Label = mongoose.model('Label', labelSchema);
 
 module.exports = Label;
 

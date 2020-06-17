@@ -17,20 +17,27 @@
         <% todos.forEach(obj => { %>
             <li onclick="todoClicked(event) " class = "todos list-group-item list-group-item-action row <%= obj.priority == 5? 'list-group-item-danger' : obj.priority == 4?
             'list-group-item-warning' : obj.priority == 3? 'list-group-item-info' : obj.priority == 2? 'list-group-item-success': 'list-group-item-light'  %>" >
-                <div class="col-lg-11"><%- obj.description %> </div>
-                <div class="col-lg-1" style="padding-right: 0;">
+                <div class="col-lg-11" style="padding-left: 0;"><%- obj.title %> </div>
+                <div class="col-lg-1 col-sm-2" style="padding-right: 0; justify-content: space-between; display: flex; padding-left: 0;">
                   <a href="/todos/<%= obj._id %>/edit"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
-                  <form action="" method="post" style="display: inline;">
-                    <button class="deleteButton" style="background: none; padding: 0; border: none;" type="submit">
-                      <i class="fa fa-arrow-right" aria-hidden="true"></i>
-                    </button>
-                  </form>
+                  <% if(obj.status == 0){ %>
+                    <form action="/inProgress" method="post" style="display: inline;">
+                      <input type="text" name="todoId" value="<%= obj._id %>" style="display: none;">
+                      <input type="text" name="status" value="1" style="display: none;">
+                      <button class="deleteButton" style="background: none; padding: 0; border: none;" type="submit">
+                        <i class="fa fa-arrow-right" aria-hidden="true"></i>
+                      </button>
+                    </form>  
+                  <% } %>
                   <form action="/todos/<%= obj._id %>?_method=DELETE" method="post" style="display: inline;">
                     <button class="deleteButton" style="background: none; padding: 0; border: none;" type="submit">
                      <i class="fa fa-trash" aria-hidden="true"></i>
                     </button>
                   </form>
                 </div>
+                <% if(obj.description){ %>
+                  <div class="col-12" style="margin-top: 8px; border: 1px solid black; border-radius: 3px;"><%= obj.description %></div>
+                <% } %> 
             </li>
         <% }) %>
       </ul>
@@ -51,6 +58,10 @@
         </div>
         <div class="modal-body">
             <form class="form " action="\todos" method="POST" id="todosForm">
+              <div class="form-group">
+                <label for="task">Title</label>
+                <input type="text" class="form-control" name= "title">
+              </div>
               <div class="form-group">
                 <label for="task">Description</label>
                 <input type="text" class="form-control" name= "description">

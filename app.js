@@ -1,3 +1,5 @@
+const { populate } = require('./models/user.js');
+
 let express = require('express'),
     methodOverride = require('method-override'),
     app     = express(),
@@ -7,9 +9,9 @@ let express = require('express'),
     localStratrergy = require('passport-local'),
     passportLocalMongoose = require('passport-local-mongoose'),
     expressSession = require('express-session'),
+    User = require('./models/user.js'),
     Label = require('./models/labels.js'),
     Todo = require('./models/Todos.js');
-    User = require('./models/user');
 
 mongoose.connect('mongodb://localhost/tracker_db', {
   useNewUrlParser: true,
@@ -49,15 +51,21 @@ app.get('/signup', (req, res) => {
 })
 
 app.post('/signup', (req, res) => {
-    console.log(req.body)
+    // console.log(req.body)
     if(!req.body.username || !req.body.password )
         return res.redirect('/signup');
     User.register( new User({ username: req.body.username, email: req.body.email}), req.body.password, (err, user) => {
         if(err){
             console.log(err)
             return res.redirect('/signup');
-        }
+            }
         passport.authenticate("local")(req, res, function(){
+            Label.create({ name: "Select", author: req.user._id}, (err, label) => {
+                if(err)
+                    console.log(err);
+                else
+                    console.log(label);
+            });    
             res.redirect("/todos");
         })
     } )
@@ -80,50 +88,57 @@ app.get('/signout', (req, res) => {
 })
 
 app.get('/todos', isAuthenticated, (req, res) => {
-    Todo.find({}, (err, todos) => {
+    // console.log(req.user);
+    Todo.find({ author: req.user._id }, (err, todos) => {
         if(err){
-            res.render("todos", {todos} );
             console.log(err);    
+            res.redirect("home");
         }
         else{
-            // console.log(todos);
-            Label.find({}, (err, labels) => {
-                if(err)
+            Label.find({ author: req.user._id }, (err, labels) => {
+                if(err){
                     console.log(err);
+                    labels = [];
+                }
                 res.render("todos", { todos, labels, isLabelSelected: false, currentUser: req.user } );
             })
         }
-    });
-    // res.render('todos', {});
+    })
 });
 
 app.post('/todos', isAuthenticated, (req, res) => {
-    if(!req.body || !req.body.description){
+    if(!req.body || !req.body.title){
         res.redirect("/todos");
     }
     else{
         req.body.priority = +req.body.priority;
-        if(!req.body.priority)
-            res.redirect('/todos')
-        Todo.create(req.body, (err, task) => {
-            if(err)
+        req.body.author = req.user._id;
+        if(!req.body.priority){
+            console.log("Incorrect priority")
+            res.redirect('/todos')    
+        }
+        Todo.create(req.body, (err, newTodo) => {
+            if(err){
                 console.log(err);
-            else
-                console.log(task)
-                res.redirect('/todos')
-        })        
+            }
+            res.redirect('/todos')
+            })        
     }
 });
 
 app.get('/todos/:id/edit', isAuthenticated, (req, res) => {
-    Todo.findById({ _id: req.params.id}, (err, todo) => {
+    // console.log(req.params.id, req.user);
+    Todo.findOne({ _id: req.params.id, author: req.user._id}, (err, todo) => {
         if(err){
             res.redirect("/todos");
             console.log(err);    
         }
         else{
+            if(!todo){
+                return res.redirect("/todos");
+            }
             // console.log(todo);
-            Label.find({}, (err, labels) => {
+            Label.find({ author: req.user._id }, (err, labels) => {
                 if(err)
                     console.log(err);
                 res.render("todosEdit", { todo, labels, currentUser: req.user } );
@@ -135,16 +150,15 @@ app.get('/todos/:id/edit', isAuthenticated, (req, res) => {
 
 app.put('/todos/:id', isAuthenticated, (req, res) => {
     console.log(req.body);
-    if(!req.body || !req.body.description){
+    if(!req.body || !req.body.title || !res.body.author.equals(req.user._id)){
         res.redirect('/todos');
         return;
     }
     let newTodo = req.body;
-    Todo.findByIdAndUpdate({ _id : req.params.id}, newTodo, (err, todo) => {
+    Todo.findByIdAndUpdate({ _id : req.params.id, author: req.user._id}, newTodo, (err, todo) => {
         if(err)
             console.log(err);
-        else
-            console.log(todo)    
+            // console.log(todo)    
         res.redirect('/todos');
     })
 });
@@ -154,18 +168,18 @@ app.delete('/todos/:id', isAuthenticated, (req, res) => {
         res.redirect('/todos');
         return;
     }
-    Todo.findByIdAndDelete({ _id : req.params.id}, (err) => {
+    Todo.findByIdAndDelete({ _id : req.params.id, author: req.user._id}, (err) => {
         if(err)
             console.log(err);
         res.redirect('/todos');
     })
 });
 
+
 app.get('/labels', isAuthenticated,(req, res) => {
-    Label.find({ "name": { $ne: "Select" }}, (err, labels) =>{
+    Label.find({ author: req.user._id ,"name": { $ne: "Select" }}, (err, labels) =>{
         if(err)
             console.log(err);
-        else
             // console.log(labels)
         res.render("labels", { labels, currentUser: req.user });
     });
@@ -177,46 +191,88 @@ app.post('/labels', isAuthenticated, (req, res) => {
         res.redirect("/labels");
         return;
     }
-    
+    req.body.author = req.user._id;
     Label.create(req.body, (err, label) => {
         if(err)
             console.log(err);
         else
-            console.log(label);
+            // console.log(label);
         res.redirect('/labels');
     });
 });
 
 app.get('/labels/:id', isAuthenticated, (req, res) => {
-    Todo.find({ label: req.params.id}, (err, todos) => {
+    Todo.find({ label: req.params.id, author: req.user._id }, (err, todos) => {
         if(err){
             // res.render("todos", {todos} );
             console.log(err);    
             res.redirect('/labels');
         }
         else{
-            console.log(todos);
-            Label.find({_id: req.params.id}, (err, labels) => {
+            // console.log(todos);
+            Label.find({_id: req.params.id, author: req.user._id }, (err, labels) => {
                 if(err)
                     console.log(err);
-                   console.log(labels) 
+                //    console.log(labels) 
                 res.render("todos", { todos, labels, isLabelSelected: true, currentUser: req.user} );
             })
         }
     });
     // res.render("todos.ejs", {"todos": []})
+});
+
+app.get('/inProgress', isAuthenticated, (req, res) => {
+    Todo.find({ author: req.user._id, status: 1}, (err, todos) => {
+        if(err){
+            console.log(err);
+            res.redirect('/todos');
+        }
+        else{
+            console.log(todos)
+            res.render("inProgress", { todos, currentUser: req.user});            
+        }
+    })
 })
 
-// app.get('/inProgress', (req, res) => {
-//     // curTask.find({}, (err, todos) => {
-//     //     if(err)
-//     //         console.log(err);
-//     //     res.render("inProgress", { todos })            
-//     // })
-// })
+app.post('/inProgress', isAuthenticated, (req,res) => {
+
+    Todo.findById(req.body.todoId, (err, todo) => {
+            if(err){
+                console.log(err);
+                res.redirect('/todos');
+            }
+            else{
+                if(todo.status == +req.body.status){
+                    if(todo.status == 0){
+                        console.log("Todo is already not in progress ");
+                        res.redirect('/todos');    
+                    }
+                    else{
+                        console.log("Todo is already in progress ");
+                        res.redirect('/inProgress');    
+                    }    
+                }
+                else{
+                    todo.status = +req.body.status;
+                    todo.save((err, savedTodo) => {
+                        if(err){
+                            console.log(err);
+                            res.redirect('/todos');            
+                        }
+                        else{
+                            if(savedTodo.status == 1)
+                                res.redirect('/inProgress')
+                            else
+                                res.redirect('/todos')
+                        }
+                    })
+                }
+            }
+    });
+});
 
 function isAuthenticated(req, res, next){
-    console.log(req.user);
+    // console.log(req.user);
     if(req.isAuthenticated())
         next();
     else
