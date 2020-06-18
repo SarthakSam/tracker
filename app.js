@@ -89,7 +89,7 @@ app.get('/signout', (req, res) => {
 
 app.get('/todos', isAuthenticated, (req, res) => {
     // console.log(req.user);
-    Todo.find({ author: req.user._id }, (err, todos) => {
+    Todo.find({ author: req.user._id, "status": { $ne: 2 } }, (err, todos) => {
         if(err){
             console.log(err);    
             res.redirect("home");
@@ -229,7 +229,7 @@ app.get('/inProgress', isAuthenticated, (req, res) => {
         }
         else{
             console.log(todos)
-            res.render("inProgress", { todos, currentUser: req.user});            
+            res.render("inProgress", { todos, currentUser: req.user, inProgress: true});            
         }
     })
 })
@@ -270,6 +270,57 @@ app.post('/inProgress', isAuthenticated, (req,res) => {
             }
     });
 });
+
+app.get('/completed', isAuthenticated, (req, res) => {
+    Todo.find({ author: req.user._id, status: 2}, (err, todos) => {
+        if(err){
+            console.log(err);
+            res.redirect('/todos');
+        }
+        else{
+            // console.log(todos)
+            res.render("inProgress", { todos, currentUser: req.user, inProgress: false});            
+        }
+    })
+})
+
+
+app.post('/completed/:id', (req, res) => {
+    Todo.findById(req.params.id, (err, todo) => {
+        if(err){
+            console.log(err);
+            res.redirect('/inProgress');
+        }
+        else{
+            todo.status = 2;
+            todo.save( (err, savedTodo) => {
+                if(err){
+                    console.log(err);
+                }
+                res.redirect('/completed');
+            } )
+        }
+})
+})
+
+app.delete('/completed/:id', (req, res) => {
+    Todo.findById(req.params.id, (err, todo) => {
+        if(err){
+            console.log(err);
+            res.redirect('/inProgress');
+        }
+        else{
+            todo.status = 0;
+            todo.save( (err, savedTodo) => {
+                if(err){
+                    console.log(err);
+                }
+                res.redirect('/todos');
+            } )
+        }
+    })
+});
+
 
 function isAuthenticated(req, res, next){
     // console.log(req.user);
