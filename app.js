@@ -75,11 +75,10 @@ app.get('/signin', (req, res) => {
     res.render("signin", { currentUser: req.user });
 })
 
-app.post('/signin', passport.authenticate("local",{
-    successRedirect: '/todos',
-    failureRedirect: '/signin'
-}) ,(req, res) => {
-    // res.render("signin");
+app.post('/signin', passport.authenticate("local",{ failureRedirect: '/signin'}) ,
+    (req, res) => {
+    console.log(req.session)    
+    res.redirect(req.session.enteredUrl || '/home');
 })
 
 app.get('/signout', (req, res) => {
@@ -88,8 +87,12 @@ app.get('/signout', (req, res) => {
 })
 
 app.get('/todos', isAuthenticated, (req, res) => {
-    // console.log(req.user);
-    Todo.find({ author: req.user._id, "status": { $ne: 2 } }, (err, todos) => {
+    let searchObj = { "author": req.user._id, "status": { $ne: 2 } };
+    if(req.query.priority){
+        searchObj.priority = +req.query.priority;
+    }
+    console.log(searchObj);
+    Todo.find(searchObj, (err, todos) => {
         if(err){
             console.log(err);    
             res.redirect("home");
@@ -100,7 +103,7 @@ app.get('/todos', isAuthenticated, (req, res) => {
                     console.log(err);
                     labels = [];
                 }
-                res.render("todos", { todos, labels, isLabelSelected: false, currentUser: req.user } );
+                res.render("todos", { todos, labels, isLabelSelected: false, currentUser: req.user, priority: +req.query.priority } );
             })
         }
     })
@@ -202,7 +205,12 @@ app.post('/labels', isAuthenticated, (req, res) => {
 });
 
 app.get('/labels/:id', isAuthenticated, (req, res) => {
-    Todo.find({ label: req.params.id, author: req.user._id }, (err, todos) => {
+    let searchObj = { "author": req.user._id, "status": { $ne: 2 },  label: req.params.id };
+    if(req.query.priority){
+        searchObj.priority = +req.query.priority;
+    }
+    console.log(searchObj);
+    Todo.find(searchObj, (err, todos) => {
         if(err){
             // res.render("todos", {todos} );
             console.log(err);    
@@ -214,7 +222,7 @@ app.get('/labels/:id', isAuthenticated, (req, res) => {
                 if(err)
                     console.log(err);
                 //    console.log(labels) 
-                res.render("todos", { todos, labels, isLabelSelected: true, currentUser: req.user} );
+                res.render("todos", { todos, labels, isLabelSelected: true, currentUser: req.user, priority: +req.query.priority} );
             })
         }
     });
@@ -323,11 +331,12 @@ app.delete('/completed/:id', (req, res) => {
 
 
 function isAuthenticated(req, res, next){
-    // console.log(req.user);
     if(req.isAuthenticated())
         next();
-    else
-    res.redirect('/signin');
+    else{
+        req.session.enteredUrl = req.originalUrl;
+        res.redirect('/signin');
+    }
 }
 
 app.listen(3000, () => {

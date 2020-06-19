@@ -12,20 +12,21 @@
         <% todos.forEach(obj => { %>
             <li onclick="todoClicked(event) " class = "todos list-group-item list-group-item-action row <%= obj.priority == 5? 'list-group-item-danger' : obj.priority == 4?
             'list-group-item-warning' : obj.priority == 3? 'list-group-item-info' : obj.priority == 2? 'list-group-item-success': 'list-group-item-light'  %>" >
-                <div class="col-lg-10" style="margin-bottom: 8px;"><%- obj.title %> </div>
-                <div class="col-lg-2" style="padding-right: 0;">
+                <div class="col-lg-9" style="margin-bottom: 8px;"><%- obj.title %> </div>
+                <div class="col-lg-3" style="padding-right: 0;">
                   <% if(inProgress){ %>
                     <a href="/todos/<%= obj._id %>/edit"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
                     <form action="/inProgress" method="post" style="display: inline; padding: 0 3px">
                       <input type="text" name="todoId" value="<%= obj._id %>" style="display: none;">
                       <input type="text" name="status" value="0" style="display: none;">
-                      <button class="deleteButton" style="background: none; padding: 0; border: none;" type="submit">
-                        <i class="fa fa-arrow-left" aria-hidden="true"></i>
+                      <button class="btn btn-sm btn-danger" style="font-size: 8px;  margin-bottom: 4px; padding: 0.15rem 0.5rem;" type="submit">
+                        <!-- <i class="fa fa-arrow-left" aria-hidden="true"></i>  -->
+                        Remove from in progress
                       </button>
                     </form>
                     <form action="/completed/<%= obj._id %>" method="post" style="display: inline;">
-                      <button class="btn btn-sm btn-danger" style="font-size: 8px;  margin-bottom: 4px; padding: 0.15rem 0.5rem;" type="submit">
-                       Mark as Completed
+                      <button class="btn btn-sm btn-success" style="font-size: 8px;  margin-bottom: 4px; padding: 0.15rem 0.5rem;" type="submit">
+                       Completed
                       </button>
                     </form>
                   </div>

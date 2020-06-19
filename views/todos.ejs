@@ -10,7 +10,16 @@
         <p class="lead" style="display: inline;">Manage your Todos here </p>
         <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#todosPopup">
           <i class="fa fa-plus mr-2" aria-hidden="true"></i>New Todo
-          </button>       
+        </button>       
+        <div class="form-group" >
+          <label for="task">Priority</label>
+          <% for(let i = 1; i <= 5;i++){  %>
+            <div class="form-check form-check-inline">
+              <a href="?priority=<%= i %>"> <input class="form-check-input" type="radio" id = "<%= i %>" name="priority" onClick="priorityChecked(event)" value="<%= i %>" <%= i == priority ? "checked" : "" %> > </a>
+              <label class="form-check-label" for="<%= i %>"><%= i %></label>
+            </div>
+          <% }   %>
+        </div>
       </div>
 
       <ul class="list-group">

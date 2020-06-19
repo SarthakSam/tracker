@@ -16,3 +16,8 @@ function todoClicked(event){
     else if(event.target.parentNode.tagName == "LI")
         event.target.parentNode.classList.add("active");
 }
+
+function priorityChecked(event){
+    // console.log(event.target.parentNode);
+    event.target.parentNode.click();
+}
