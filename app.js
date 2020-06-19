@@ -38,16 +38,16 @@ passport.use(new localStratrergy(User.authenticate()));
 // Label.create({name: "Select", author: "sarthak"})
 
 app.get('/',(req, res) => {
-    res.render('home', { currentUser: req.user});
+    res.redirect('/home');
 });
 
 app.get('/home',(req, res) => {
-    res.render('home', { currentUser: req.user});
+    res.render('home', { currentUser: req.user, page: 'home'});
 });
 
 
 app.get('/signup', (req, res) => {
-    res.render("signup", { currentUser: req.user });
+    res.render("signup", { currentUser: req.user, page: 'signup' });
 })
 
 app.post('/signup', (req, res) => {
@@ -72,12 +72,12 @@ app.post('/signup', (req, res) => {
 });
 
 app.get('/signin', (req, res) => {
-    res.render("signin", { currentUser: req.user });
+    res.render("signin", { currentUser: req.user, page: 'signin' });
 })
 
 app.post('/signin', passport.authenticate("local",{ failureRedirect: '/signin'}) ,
     (req, res) => {
-    console.log(req.session)    
+    // console.log(req.session)    
     res.redirect(req.session.enteredUrl || '/home');
 })
 
@@ -91,19 +91,23 @@ app.get('/todos', isAuthenticated, (req, res) => {
     if(req.query.priority){
         searchObj.priority = +req.query.priority;
     }
-    console.log(searchObj);
+    if(req.query.search){
+        searchObj.title =  { "$regex": req.query.search, "$options": "i" };
+    }
+    // console.log(searchObj);
     Todo.find(searchObj, (err, todos) => {
         if(err){
             console.log(err);    
             res.redirect("home");
         }
         else{
+            // console.log(todos)
             Label.find({ author: req.user._id }, (err, labels) => {
                 if(err){
                     console.log(err);
                     labels = [];
                 }
-                res.render("todos", { todos, labels, isLabelSelected: false, currentUser: req.user, priority: +req.query.priority } );
+                res.render("todos", { todos, labels, isLabelSelected: false, currentUser: req.user, priority: +req.query.priority, page: 'todos' } );
             })
         }
     })
@@ -144,7 +148,7 @@ app.get('/todos/:id/edit', isAuthenticated, (req, res) => {
             Label.find({ author: req.user._id }, (err, labels) => {
                 if(err)
                     console.log(err);
-                res.render("todosEdit", { todo, labels, currentUser: req.user } );
+                res.render("todosEdit", { todo, labels, currentUser: req.user, page: 'todos' } );
             })
         }
     });
@@ -180,11 +184,15 @@ app.delete('/todos/:id', isAuthenticated, (req, res) => {
 
 
 app.get('/labels', isAuthenticated,(req, res) => {
-    Label.find({ author: req.user._id ,"name": { $ne: "Select" }}, (err, labels) =>{
+    let searchObj = { "author": req.user._id, "name": { $ne: "Select" } };
+    if(req.query.search){
+        searchObj.name =  { "$regex": req.query.search, "$options": "i" };
+    }
+    Label.find( searchObj, (err, labels) =>{
         if(err)
             console.log(err);
             // console.log(labels)
-        res.render("labels", { labels, currentUser: req.user });
+        res.render("labels", { labels, currentUser: req.user, page: 'labels' });
     });
 })
 
@@ -209,7 +217,10 @@ app.get('/labels/:id', isAuthenticated, (req, res) => {
     if(req.query.priority){
         searchObj.priority = +req.query.priority;
     }
-    console.log(searchObj);
+    if(req.query.search){
+        searchObj.title =  { "$regex": req.query.search, "$options": "i" };
+    }
+    // console.log(searchObj);
     Todo.find(searchObj, (err, todos) => {
         if(err){
             // res.render("todos", {todos} );
@@ -222,7 +233,7 @@ app.get('/labels/:id', isAuthenticated, (req, res) => {
                 if(err)
                     console.log(err);
                 //    console.log(labels) 
-                res.render("todos", { todos, labels, isLabelSelected: true, currentUser: req.user, priority: +req.query.priority} );
+                res.render("todos", { todos, labels, isLabelSelected: true, currentUser: req.user, priority: +req.query.priority, page: 'labels'} );
             })
         }
     });
@@ -230,14 +241,18 @@ app.get('/labels/:id', isAuthenticated, (req, res) => {
 });
 
 app.get('/inProgress', isAuthenticated, (req, res) => {
-    Todo.find({ author: req.user._id, status: 1}, (err, todos) => {
+    let searchObj = { "author": req.user._id, "status": 1};
+    if(req.query.search){
+        searchObj.title =  { "$regex": req.query.search, "$options": "i" };
+    }
+    Todo.find(searchObj , (err, todos) => {
         if(err){
             console.log(err);
             res.redirect('/todos');
         }
         else{
-            console.log(todos)
-            res.render("inProgress", { todos, currentUser: req.user, inProgress: true});            
+            // console.log(todos)
+            res.render("inProgress", { todos, currentUser: req.user, inProgress: true, page: 'inProgress'});            
         }
     })
 })
@@ -280,14 +295,18 @@ app.post('/inProgress', isAuthenticated, (req,res) => {
 });
 
 app.get('/completed', isAuthenticated, (req, res) => {
-    Todo.find({ author: req.user._id, status: 2}, (err, todos) => {
+    let searchObj = { "author": req.user._id, "status": 2};
+    if(req.query.search){
+        searchObj.title =  { "$regex": req.query.search, "$options": "i" };
+    }
+    Todo.find(searchObj, (err, todos) => {
         if(err){
             console.log(err);
             res.redirect('/todos');
         }
         else{
             // console.log(todos)
-            res.render("inProgress", { todos, currentUser: req.user, inProgress: false});            
+            res.render("inProgress", { todos, currentUser: req.user, inProgress: false, page: 'completed'});            
         }
     })
 })

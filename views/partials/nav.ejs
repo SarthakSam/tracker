@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
 
-    <a class="navbar-brand" href="/">Tracker</a>
+    <a class="navbar-brand <%= page == 'home' ? 'active': ''%>" href="/">Tracker</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -9,20 +9,20 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <% if(currentUser){ %>
           <ul class="navbar-nav mr-auto" style="width: -webkit-fill-available">
-            <li class="nav-item active">
-              <a class="nav-link" href="/todos">Todos <span class="sr-only">(current)</span></a>
+            <li class="nav-item">
+              <a class="nav-link <%= page == 'todos' ? 'active': ''%>" href="/todos">Todos <span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/labels">Labels</a>
+              <a class="nav-link <%= page == 'labels' ? 'active': ''%>" href="/labels">Labels</a>
             </li> 
             <li class="nav-item">
-              <a class="nav-link" href="/inProgress">In Progress</a>
+              <a class="nav-link <%= page == 'inProgress' ? 'active': ''%>" href="/inProgress">In Progress</a>
             </li> 
             <li class="nav-item">
-              <a class="nav-link" href="/completed">Completed</a>
+              <a class="nav-link <%= page == 'completed' ? 'active': ''%>" href="/completed">Completed</a>
             </li> 
-          <form class="form-inline nav-item" style="margin-left: 3px;">
-              <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+          <form class="form-inline nav-item" style="margin-left: 3px;" method="GET" action="?=search">
+              <input class="form-control mr-sm-2" type="search" name="search" placeholder="Search" aria-label="Search">
               <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
             </form> 
             <li class="nav-item active ml-auto" >
@@ -31,11 +31,11 @@
           </ul>
       <% } else {  %>
           <ul class="navbar-nav ml-auto">
-            <li class="nav-item active">
-              <a class="nav-link" href="/signin">Signin</a>
+            <li class="nav-item ">
+              <a class="nav-link <%= page == 'signin' ? 'active': ''%>" href="/signin">Signin</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/signup">Signup</a>
+              <a class="nav-link <%= page == 'signup' ? 'active': ''%>" href="/signup">Signup</a>
             </li> 
           </ul>
   
