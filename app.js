@@ -14,7 +14,8 @@ let express = require('express'),
     Todo = require('./models/Todos.js');
     
 
-mongoose.connect('mongodb://localhost/tracker_db', {
+//   mongoose.connect('mongodb://sarthak:Mypassword123!@ds151533.mlab.com:51533/task_tracker', {
+mongoose.connect(process.env.dBURL || 'mongodb://localhost/tracker_db', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
@@ -359,6 +360,6 @@ function isAuthenticated(req, res, next){
     }
 }
 
-app.listen(3000, () => {
+app.listen(process.env.PORT || 3000, () => {
     console.log("server started at port 3000");
 })
