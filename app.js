@@ -12,6 +12,7 @@ let express = require('express'),
     User = require('./models/user.js'),
     Label = require('./models/labels.js'),
     Todo = require('./models/Todos.js');
+    
 
 mongoose.connect('mongodb://localhost/tracker_db', {
   useNewUrlParser: true,
