@@ -1,5 +1,3 @@
-const { populate } = require('./models/user.js');
-
 let express = require('express'),
     methodOverride = require('method-override'),
     app     = express(),
@@ -9,6 +7,7 @@ let express = require('express'),
     localStratrergy = require('passport-local'),
     passportLocalMongoose = require('passport-local-mongoose'),
     expressSession = require('express-session'),
+    flash = require('connect-flash'),
     User = require('./models/user.js'),
     Label = require('./models/labels.js'),
     Todo = require('./models/Todos.js');
@@ -20,6 +19,7 @@ mongoose.connect(process.env.databaseURL || 'mongodb://localhost/tracker_db', {
   useUnifiedTopology: true
 });
 
+app.use(flash());
 app.set('view engine', 'ejs')
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
@@ -37,19 +37,25 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 passport.use(new localStratrergy(User.authenticate()));
 
-// Label.create({name: "Select", author: "sarthak"})
+app.use( (req, res, next) => {
+    res.locals.currentUser = req.user;
+    res.locals.message = req.flash('message');
+    res.locals.error = req.flash('error');
+    // console.log(res.locals);
+    next();
+})
 
 app.get('/',(req, res) => {
     res.redirect('/home');
 });
 
 app.get('/home',(req, res) => {
-    res.render('home', { currentUser: req.user, page: 'home'});
+    res.render('home', { page: 'home'});
 });
 
 
 app.get('/signup', (req, res) => {
-    res.render("signup", { currentUser: req.user, page: 'signup' });
+    res.render("signup", { page: 'signup' });
 })
 
 app.post('/signup', (req, res) => {
@@ -74,17 +80,20 @@ app.post('/signup', (req, res) => {
 });
 
 app.get('/signin', (req, res) => {
-    res.render("signin", { currentUser: req.user, page: 'signin' });
+
+    res.render("signin", { currentUser: req.user, page: 'signin'});
 })
 
 app.post('/signin', passport.authenticate("local",{ failureRedirect: '/signin'}) ,
     (req, res) => {
     // console.log(req.session)    
+    req.flash("message", " Welcome " + req.user.username);
     res.redirect(req.session.enteredUrl || '/home');
 })
 
 app.get('/signout', (req, res) => {
     req.logOut();
+    req.flash("message", "User logged out succesfully");
     res.redirect('/');
 })
 
@@ -109,7 +118,7 @@ app.get('/todos', isAuthenticated, (req, res) => {
                     console.log(err);
                     labels = [];
                 }
-                res.render("todos", { todos, labels, isLabelSelected: false, currentUser: req.user, priority: +req.query.priority, page: 'todos' } );
+                res.render("todos", { todos, labels, isLabelSelected: false,  priority: +req.query.priority, page: 'todos' } );
             })
         }
     })
@@ -117,18 +126,24 @@ app.get('/todos', isAuthenticated, (req, res) => {
 
 app.post('/todos', isAuthenticated, (req, res) => {
     if(!req.body || !req.body.title){
+        req.flash("error", "Todo title is required");
         res.redirect("/todos");
     }
     else{
         req.body.priority = +req.body.priority;
         req.body.author = req.user._id;
         if(!req.body.priority){
+            req.flash("error", "Priority is not correct");
             console.log("Incorrect priority")
             res.redirect('/todos')    
         }
         Todo.create(req.body, (err, newTodo) => {
             if(err){
+                req.flash("error", "Unable to create new todo");
                 console.log(err);
+            }
+            else{
+                req.flash("message", "Todo created successfully");
             }
             res.redirect('/todos')
             })        
@@ -139,18 +154,20 @@ app.get('/todos/:id/edit', isAuthenticated, (req, res) => {
     // console.log(req.params.id, req.user);
     Todo.findOne({ _id: req.params.id, author: req.user._id}, (err, todo) => {
         if(err){
-            res.redirect("/todos");
+            req.flash("error", "Given todo doesnot belong to" + req.user.username);
             console.log(err);    
+            res.redirect("/todos");
         }
         else{
             if(!todo){
+                req.flash("error", " Unable to find todo.");
                 return res.redirect("/todos");
             }
             // console.log(todo);
             Label.find({ author: req.user._id }, (err, labels) => {
                 if(err)
                     console.log(err);
-                res.render("todosEdit", { todo, labels, currentUser: req.user, page: 'todos' } );
+                res.render("todosEdit", { todo, labels, page: 'todos' } );
             })
         }
     });
@@ -158,15 +175,25 @@ app.get('/todos/:id/edit', isAuthenticated, (req, res) => {
 });
 
 app.put('/todos/:id', isAuthenticated, (req, res) => {
-    console.log(req.body);
-    if(!req.body || !req.body.title || !res.body.author.equals(req.user._id)){
+    // console.log(req.body);
+    if(!req.body || !req.body.title){
+        req.flash("error", " Updated todo is not valid.");
+        res.redirect('/todos');
+        return;
+    }
+    if(!req.user._id.equals(req.body.author)){
+        req.flash("error", "Given todo doesnot belong to" + req.user.username);
         res.redirect('/todos');
         return;
     }
     let newTodo = req.body;
     Todo.findByIdAndUpdate({ _id : req.params.id, author: req.user._id}, newTodo, (err, todo) => {
-        if(err)
+        if(err){
+            req.flash("error", "Something went wrong. UNable to update Todo");
             console.log(err);
+        }
+        else
+            req.flash("message", "Todo updated successfully");
             // console.log(todo)    
         res.redirect('/todos');
     })
@@ -174,12 +201,17 @@ app.put('/todos/:id', isAuthenticated, (req, res) => {
 
 app.delete('/todos/:id', isAuthenticated, (req, res) => {
     if(!req.params.id){
+        req.flash("error", "No todo with such ID exist");
         res.redirect('/todos');
         return;
     }
     Todo.findByIdAndDelete({ _id : req.params.id, author: req.user._id}, (err) => {
-        if(err)
+        if(err){
             console.log(err);
+            req.flash("error", "Unable to delete todo");
+        }
+        else
+            req.flash("message", "Todo deleted successfully!");
         res.redirect('/todos');
     })
 });
@@ -191,25 +223,29 @@ app.get('/labels', isAuthenticated,(req, res) => {
         searchObj.name =  { "$regex": req.query.search, "$options": "i" };
     }
     Label.find( searchObj, (err, labels) =>{
-        if(err)
-            console.log(err);
-            // console.log(labels)
-        res.render("labels", { labels, currentUser: req.user, page: 'labels' });
+        if(err){
+            req.flash("error", "Something went wrong");
+            console.log(err);            
+        }
+        res.render("labels", { labels, page: 'labels' });
     });
 })
 
 app.post('/labels', isAuthenticated, (req, res) => {
-    console.log(req.body);
+    // console.log(req.body);
     if(!req.body || !req.body.name){
+        req.flash("error", "Label data not valid");
         res.redirect("/labels");
         return;
     }
     req.body.author = req.user._id;
     Label.create(req.body, (err, label) => {
-        if(err)
-            console.log(err);
+        if(err){
+        req.flash("error", "Unable to create Label");
+        console.log(err);            
+        }
         else
-            // console.log(label);
+            console.log("message", "Label created succesfully");
         res.redirect('/labels');
     });
 });
@@ -226,6 +262,7 @@ app.get('/labels/:id', isAuthenticated, (req, res) => {
     Todo.find(searchObj, (err, todos) => {
         if(err){
             // res.render("todos", {todos} );
+            req.flash("error", "Unable to find todos corresponding to selected label");
             console.log(err);    
             res.redirect('/labels');
         }
@@ -235,7 +272,7 @@ app.get('/labels/:id', isAuthenticated, (req, res) => {
                 if(err)
                     console.log(err);
                 //    console.log(labels) 
-                res.render("todos", { todos, labels, isLabelSelected: true, currentUser: req.user, priority: +req.query.priority, page: 'labels'} );
+                res.render("todos", { todos, labels, isLabelSelected: true, priority: +req.query.priority, page: 'labels'} );
             })
         }
     });
@@ -250,29 +287,32 @@ app.get('/inProgress', isAuthenticated, (req, res) => {
     Todo.find(searchObj , (err, todos) => {
         if(err){
             console.log(err);
+            req.flash("error", "Unable to fetch todos in progress");
             res.redirect('/todos');
         }
         else{
             // console.log(todos)
-            res.render("inProgress", { todos, currentUser: req.user, inProgress: true, page: 'inProgress'});            
+            res.render("inProgress", { todos, inProgress: true, page: 'inProgress'});            
         }
     })
 })
 
 app.post('/inProgress', isAuthenticated, (req,res) => {
-
     Todo.findById(req.body.todoId, (err, todo) => {
             if(err){
                 console.log(err);
+                req.flash("error", "Unable to find todo");
                 res.redirect('/todos');
             }
             else{
                 if(todo.status == +req.body.status){
                     if(todo.status == 0){
+                        req.flash("error", "Todo is not in progress already");
                         console.log("Todo is already not in progress ");
                         res.redirect('/todos');    
                     }
                     else{
+                        req.flash("error", "Todo is already in progress");
                         console.log("Todo is already in progress ");
                         res.redirect('/inProgress');    
                     }    
@@ -281,6 +321,7 @@ app.post('/inProgress', isAuthenticated, (req,res) => {
                     todo.status = +req.body.status;
                     todo.save((err, savedTodo) => {
                         if(err){
+                            req.flash("error", "Something went wrong");
                             console.log(err);
                             res.redirect('/todos');            
                         }
@@ -296,19 +337,20 @@ app.post('/inProgress', isAuthenticated, (req,res) => {
     });
 });
 
-app.get('/completed', isAuthenticated, (req, res) => {
+app.get('/completed', isAuthenticated, (req, res) => {  
     let searchObj = { "author": req.user._id, "status": 2};
     if(req.query.search){
         searchObj.title =  { "$regex": req.query.search, "$options": "i" };
     }
     Todo.find(searchObj, (err, todos) => {
         if(err){
+            req.flash("error", "Unable to find todo");
             console.log(err);
             res.redirect('/todos');
         }
         else{
             // console.log(todos)
-            res.render("inProgress", { todos, currentUser: req.user, inProgress: false, page: 'completed'});            
+            res.render("inProgress", { todos, inProgress: false, page: 'completed'});            
         }
     })
 })
@@ -318,14 +360,18 @@ app.post('/completed/:id', (req, res) => {
     Todo.findById(req.params.id, (err, todo) => {
         if(err){
             console.log(err);
+            req.flash("error", "Unable to move todo to completed state");
             res.redirect('/inProgress');
         }
         else{
             todo.status = 2;
             todo.save( (err, savedTodo) => {
                 if(err){
+                    req.flash("error", "Unable to move todo to completed state");
                     console.log(err);
                 }
+                else
+                    req.flash("message", "Todo completed succesfully");
                 res.redirect('/completed');
             } )
         }
@@ -356,6 +402,7 @@ function isAuthenticated(req, res, next){
         next();
     else{
         req.session.enteredUrl = req.originalUrl;
+        req.flash("error", "You need to be logged in first.")
         res.redirect('/signin');
     }
 }

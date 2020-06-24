@@ -26,7 +26,7 @@
         <% todos.forEach(obj => { %>
             <li onclick="todoClicked(event) " class = "todos list-group-item list-group-item-action row <%= obj.priority == 5? 'list-group-item-danger' : obj.priority == 4?
             'list-group-item-warning' : obj.priority == 3? 'list-group-item-info' : obj.priority == 2? 'list-group-item-success': 'list-group-item-light'  %>" >
-                <div class="col-lg-11" style="padding-left: 0;"><%- obj.title %> </div>
+                <div class="col-lg-11 title" style="font-weight: 600;"><%- obj.title %> </div>
                 <div class="col-lg-1 col-sm-2" style="padding-right: 0; justify-content: space-between; display: flex; padding-left: 0;">
                   <a href="/todos/<%= obj._id %>/edit"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
                   <% if(obj.status == 0){ %>
@@ -45,7 +45,10 @@
                   </form>
                 </div>
                 <% if(obj.description){ %>
-                  <div class="col-12" style="margin-top: 8px; border: 1px solid black; border-radius: 3px;"><%= obj.description %></div>
+                  <div class="col-12">
+                  <hr style="border: 1px solid rgba(255,255,255,.7">
+                  <p><%= obj.description %></p>
+                </div>
                 <% } %> 
             </li>
         <% }) %>

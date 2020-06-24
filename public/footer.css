@@ -40,5 +40,8 @@
 
 .active{
     height: auto;
+}
 
+li.active .title{
+    font-size: x-large;
 }
