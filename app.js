@@ -14,8 +14,8 @@ let express = require('express'),
     Todo = require('./models/Todos.js');
     
 
-  mongoose.connect('mongodb://sarthak:Mypassword123!@ds151533.mlab.com:51533/task_tracker', {
-// mongoose.connect(process.env.dBURL || 'mongodb://localhost/tracker_db', {
+//   mongoose.connect('mongodb://sarthak:Mypassword123!@ds151533.mlab.com:51533/task_tracker', {
+mongoose.connect(process.env.databaseURL || 'mongodb://localhost/tracker_db', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
