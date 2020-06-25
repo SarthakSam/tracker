@@ -4,6 +4,12 @@ function submitForm(){
     form.submit()
 }
 
+function submitEditLabelForm(){
+    let form = document.getElementById('labelsEditForm')
+    console.log(form);
+    form.submit()
+}
+
 function todoClicked(event){
     const lis = $(".todos");
     // console.log(lis);

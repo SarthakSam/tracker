@@ -280,7 +280,25 @@ app.get('/labels/:id', isAuthenticated, (req, res) => {
     // res.render("todos.ejs", {"todos": []})
 });
 
-app.delete('/labels/:id', (req, res) => {
+app.put('/labels/:id', isAuthenticated, (req, res) => {
+    let updatedLabel = {
+        author: req.user._id,
+        name: req.body.name
+    }
+    Label.findByIdAndUpdate( { _id: req.params.id }, updatedLabel,(err, label) => {
+        if(err){
+            req.flash("error", "Unable to update label");
+            console.log(err);
+        }
+        else{
+            req.flash("message", "Label updated successfully");
+        }
+        res.redirect('/labels/' + req.params.id);
+    } );
+});
+
+
+app.delete('/labels/:id', isAuthenticated, (req, res) => {
     Todo.deleteMany({ label: req.params.id }, (err, todos) => {
         if(err){
             req.flash("error", "Something went wrong");
@@ -288,7 +306,7 @@ app.delete('/labels/:id', (req, res) => {
             res.redirect('/labels/' + req.params.id)
         }
         else{
-            Label.findByIdAndDelete(req.params.id, (err, label) => {
+            Label.findByIdAndRemove(req.params.id, (err, label) => {
                 if(err){
                     req.flash("error", "Something went wrong");
                     console.log(err);

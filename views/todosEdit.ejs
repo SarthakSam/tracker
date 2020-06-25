@@ -3,7 +3,7 @@
 
 <div class="row col-8 editTodo">
     <h1> Edit Todo</h1>
-    <form action= "/todos/<%= todo._id %>?_method=PUT" method="POST" style="width: 100%; padding-top: 4em;"> 
+    <form action= "/todos/<%= todo._id %>?_method=PUT" method="POST" style="width: 100%;"> 
         <div class="form-group" style="display: none;">
           <label for="task">Author</label>
           <input type="text" class="form-control" name= "author" value="<%= todo.author %>">
@@ -14,7 +14,8 @@
         </div>
         <div class="form-group">
           <label for="task">Description</label>
-          <input type="text" class="form-control" name= "description" value="<%= todo.description %>">
+          <textarea name="description" class="form-control" cols="30" rows="7"> <%= todo.description %> </textarea>
+          <!-- <input type="text" class="form-control" name= "description" value="<%= todo.description %>"> -->
         </div>
         <div class="form-group">
           <label for="task">Priority</label>
