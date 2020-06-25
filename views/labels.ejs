@@ -18,14 +18,17 @@
 
       <div class="row" style="padding: 10px;">
         <% labels.forEach( (obj) => { %>
-            <div class="card col-sm-4">
-                <!-- <img src="..." class="card-img-top" alt="..."> -->
-                <div class="card-body">
-                  <h5 class="card-title"><%= obj.name %></h5>
-                  <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                  <a href="/labels/<%= obj._id %>" class="btn btn-primary">View Todos</a>
-                </div>
-              </div>
+           <a class="card col-sm-3" style="padding: 10px; border: none; color:white; text-decoration: none; text-transform: uppercase;" href="/labels/<%= obj._id %>">
+              <div class="card-body" style="background-color: <%= obj.backgroundColor %>; border: 5px solid #0b1d2f;">
+                <% if(obj.name.length > 25){ %>
+                  <h5 class="card-title"><%= obj.name.substring(0, 25) %>...</h5>
+                <% }else{ %>
+                <h5 class="card-title"><%= obj.name %></h5>
+                <% } %>
+                <!-- <a href="/labels/<%= obj._id %>" class="btn btn-outline-primary">View</a>
+                <a href="/labels/<%= obj._id %>" class="btn btn-outline-danger">Delete</a> -->
+            </div> 
+           </a>
         <% }) %>  
       </div>
      

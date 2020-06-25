@@ -1,20 +1,31 @@
 
     <%- include('./partials/header.ejs') %>
-    <div class="jumbotron" style="padding: 10px;">
+    <div class="jumbotron" style="padding: 10px; background-color: #aaebb8">
         <h1 class="display-4">Todos List
           <% if(isLabelSelected){ %>
-            for <%= labels[0].name %> 
+            for: <span style="color: white;"><%= labels[0].name %> </span>
           <% } %>
         </h1>
         <hr class="my-4">
-        <p class="lead" style="display: inline;">Manage your Todos here </p>
-        <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#todosPopup">
-          <i class="fa fa-plus mr-2" aria-hidden="true"></i>New Todo
-        </button>       
+        <div class="d-flex justify-content-between">
+          <p class="lead">Manage your Todos here </p>
+          <div>
+              <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#todosPopup" style="margin-bottom: 3px;">
+                <i class="fa fa-plus mr-2" aria-hidden="true"></i>Create Todo
+              </button>  
+              <% if(isLabelSelected){ %>
+                <form action="<%= labels[0]._id %>?_method=DELETE" method="POST" style="display: inline;">
+                  <button class="btn btn-outline-danger" style=" margin-bottom: 3px;" >
+                    <i class="fa fa-trash mr-2" aria-hidden="true"></i>Delete Label
+                  </button>               
+                </form>    
+              <% } %>   
+          </div>
+        </div>
         <div class="form-group" >
-          <label for="task">Priority</label>
+          <label for="task" class="mr-2 ">Priority</label>
           <% for(let i = 1; i <= 5;i++){  %>
-            <div class="form-check form-check-inline">
+            <div class="form-check form-check-inline" style="margin-right: 0.65rem;">
               <a href="?priority=<%= i %>"> <input class="form-check-input" type="radio" id = "<%= i %>" name="priority" onClick="priorityChecked(event)" value="<%= i %>" <%= i == priority ? "checked" : "" %> > </a>
               <label class="form-check-label" for="<%= i %>"><%= i %></label>
             </div>

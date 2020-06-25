@@ -1,6 +1,10 @@
+body, .card{
+    /* background-color: #0b1d2f; */
+}
+
 .footer{
     /* position: absolute; */
-    bottom : 0;
+    bottom : 0; 
     width: 100%;
     height: 30px;
     background-color: #343a40;   

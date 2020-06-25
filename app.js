@@ -222,11 +222,12 @@ app.get('/labels', isAuthenticated,(req, res) => {
     if(req.query.search){
         searchObj.name =  { "$regex": req.query.search, "$options": "i" };
     }
-    Label.find( searchObj, (err, labels) =>{
+    Label.find( searchObj ).lean().exec( (err, labels) => {
         if(err){
             req.flash("error", "Something went wrong");
             console.log(err);            
         }
+        labels.forEach( label => label.backgroundColor = getRandomColor());
         res.render("labels", { labels, page: 'labels' });
     });
 })
@@ -277,6 +278,29 @@ app.get('/labels/:id', isAuthenticated, (req, res) => {
         }
     });
     // res.render("todos.ejs", {"todos": []})
+});
+
+app.delete('/labels/:id', (req, res) => {
+    Todo.deleteMany({ label: req.params.id }, (err, todos) => {
+        if(err){
+            req.flash("error", "Something went wrong");
+            console.log(err);
+            res.redirect('/labels/' + req.params.id)
+        }
+        else{
+            Label.findByIdAndDelete(req.params.id, (err, label) => {
+                if(err){
+                    req.flash("error", "Something went wrong");
+                    console.log(err);
+                    res.redirect('/labels');
+                }       
+                else{
+                    req.flash("message", "Label deleted sucesfully");
+                    res.redirect('/labels');
+                }
+            })
+        }
+    })
 });
 
 app.get('/inProgress', isAuthenticated, (req, res) => {
@@ -405,6 +429,11 @@ function isAuthenticated(req, res, next){
         req.flash("error", "You need to be logged in first.")
         res.redirect('/signin');
     }
+}
+
+function getRandomColor(){
+    let a = Math.random()*256, b = Math.random()*256, c = Math.random()*256;
+    return `rgba( ${ Math.floor(a) }, ${ Math.floor(b) }, ${ Math.floor(c) }, 0.85)`
 }
 
 app.listen(process.env.PORT || 3000, () => {
