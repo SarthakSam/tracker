@@ -82,6 +82,12 @@
         </div>
         <div class="modal-body">
             <form class="form " action="\todos" method="POST" id="todosForm">
+              <% if(isLabelSelected){ %>
+                <div class="form-group" style="display: none;">
+                  <label for="labelId">Label</label>
+                  <input type="text" class="form-control" name= "labelId" value = "<%= labels[0]._id %>">
+                </div>
+              <% } %>
               <div class="form-group">
                 <label for="task">Title</label>
                 <input type="text" class="form-control" name= "title">

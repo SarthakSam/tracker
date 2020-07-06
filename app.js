@@ -13,7 +13,6 @@ let express = require('express'),
     Todo = require('./models/Todos.js');
     
 
-//   mongoose.connect('mongodb://sarthak:Mypassword123!@ds151533.mlab.com:51533/task_tracker', {
 mongoose.connect(process.env.databaseURL || 'mongodb://localhost/tracker_db', {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -125,6 +124,7 @@ app.get('/todos', isAuthenticated, (req, res) => {
 });
 
 app.post('/todos', isAuthenticated, (req, res) => {
+    console.log(req.body)
     if(!req.body || !req.body.title){
         req.flash("error", "Todo title is required");
         res.redirect("/todos");
@@ -145,7 +145,10 @@ app.post('/todos', isAuthenticated, (req, res) => {
             else{
                 req.flash("message", "Todo created successfully");
             }
-            res.redirect('/todos')
+            if(req.body.labelId)
+                res.redirect('/labels/' + req.body.labelId)
+            else
+                res.redirect('/todos');
             })        
     }
 });
